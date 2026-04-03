@@ -326,6 +326,11 @@ class Terminal:
         if self.mock_mode:
             return
 
+        # In BBS mode, skip the IDE render — BBS methods handle their own drawing
+        if self._bbs_mode:
+            self._flip()
+            return
+
         # 1. Draw background image (title bar, toolbar, borders)
         self.screen.blit(self.bg_image, (0, 0))
 
