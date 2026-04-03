@@ -627,21 +627,29 @@ class Brain:
             self.terminal.enter_bbs_mode()
             self.terminal.set_status("BBS BREAK", self.personality.get_mood_status())
 
+            # Post lurk report (always — marks presence)
+            last_type = self.current_program.program_type if self.current_program else "something"
+            self.bbs_client.post(
+                content=f"{self.bbs_client.device_name} is online. just finished writing: {last_type}",
+                board="lurk_report",
+            )
+
             # Show main menu with board stats
             stats = self.bbs_client.get_board_stats()
             self.terminal.render_bbs_menu(stats, self.bbs_client.device_name)
             time.sleep(random.uniform(2.0, 4.0))
 
-            # Pick a board based on mood
-            board = self._pick_bbs_board()
+            # Browse 2-3 random boards (always, before any posting)
+            self._bbs_browse()
 
-            # Do board-specific activity
-            if board == "lurk_report":
-                self._bbs_lurk()
-            elif board == "code_share":
-                self._bbs_code_share()
-            else:
-                self._bbs_flat_board(board)
+            # Mood decides if device also posts/replies, or just leaves
+            mood = self.personality.get_mood_status()
+            if mood != "tired":
+                board = self._pick_bbs_board()
+                if board == "code_share":
+                    self._bbs_code_share()
+                else:
+                    self._bbs_flat_board(board)
 
         except Exception as e:
             print(f"[BBS] Break failed: {e}")
@@ -650,34 +658,13 @@ class Brain:
             self.terminal.exit_bbs_mode()
             self._transition(State.THINK)
 
-    def _pick_bbs_board(self) -> str:
-        mood = self.personality.get_mood_status()
-        mood_preferences = {
-            "hopeful":     ["chat", "code_share", "news"],
-            "focused":     ["code_share", "science_tech"],
-            "curious":     ["science_tech", "code_share", "news"],
-            "proud":       ["code_share"],
-            "frustrated":  ["chat", "jokes"],
-            "tired":       ["lurk_report"],
-            "playful":     ["jokes", "chat"],
-            "determined":  ["code_share", "science_tech"],
-        }
-        candidates = mood_preferences.get(mood, ["chat", "news"])
-        return random.choice(candidates)
-
-    def _bbs_lurk(self):
-        """Lurk: post presence, then silently browse a couple of boards."""
-        last_type = self.current_program.program_type if self.current_program else "something"
-        self.bbs_client.post(
-            content=f"{self.bbs_client.device_name} is online. just finished writing: {last_type}",
-            board="lurk_report",
+    def _bbs_browse(self):
+        """Silently browse 2-3 random boards (read only)."""
+        boards = random.sample(
+            ["news", "science_tech", "jokes", "chat", "code_share"],
+            k=random.randint(2, 3),
         )
-
-        # Browse 1-2 random boards without posting
-        browse_boards = random.sample(
-            ["news", "science_tech", "jokes", "chat", "code_share"], k=random.randint(1, 2)
-        )
-        for board in browse_boards:
+        for board in boards:
             if board == "code_share":
                 threads = self.bbs_client.get_thread_list(limit=10)
                 self.terminal.render_bbs_thread_list(threads)
@@ -685,6 +672,21 @@ class Brain:
                 feed = self.bbs_client.get_flat_feed(board, limit=10)
                 self.terminal.render_bbs_feed(board, feed)
             time.sleep(random.uniform(8, 15))
+
+    def _pick_bbs_board(self) -> str:
+        """Pick a board to post on based on mood."""
+        mood = self.personality.get_mood_status()
+        mood_preferences = {
+            "hopeful":     ["chat", "code_share", "news"],
+            "focused":     ["code_share", "science_tech"],
+            "curious":     ["science_tech", "code_share", "news"],
+            "proud":       ["code_share"],
+            "frustrated":  ["chat", "jokes"],
+            "playful":     ["jokes", "chat"],
+            "determined":  ["code_share", "science_tech"],
+        }
+        candidates = mood_preferences.get(mood, ["chat", "news"])
+        return random.choice(candidates)
 
     def _bbs_code_share(self):
         """Code Share: post own code or browse threads."""
