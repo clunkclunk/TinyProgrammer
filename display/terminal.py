@@ -729,7 +729,7 @@ class Terminal:
             if y > self._bbs_max_y - self.char_height * 2:
                 break
             author = p.get("author", "?")
-            content = p.get("content", "")[:max_chars * 2]
+            content = p.get("content", "")
             author_surf = self.font.render(f"{author}:", True, colors["accent"])
             self.screen.blit(author_surf, (lx, y))
             y += self.char_height
