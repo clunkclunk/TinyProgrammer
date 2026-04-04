@@ -49,6 +49,38 @@
     </div>
 </div>
 
+{% if status.bbs_enabled %}
+<h2>BBS Status</h2>
+<div class="status-grid">
+    <div class="status-card">
+        <h3>Device Name</h3>
+        <div class="status-value">{{ status.bbs_device_name or 'Not registered' }}</div>
+    </div>
+    <div class="status-card">
+        <h3>BBS Breaks Taken</h3>
+        <div class="status-value">{{ status.bbs_breaks_taken or 0 }}</div>
+    </div>
+    <div class="status-card">
+        <h3>Break Chance</h3>
+        <div class="status-value">{{ (status.bbs_break_chance * 100)|int }}%</div>
+    </div>
+</div>
+{% endif %}
+
+{% if status.schedule_enabled %}
+<h2>Schedule</h2>
+<div class="status-grid">
+    <div class="status-card">
+        <h3>Status</h3>
+        <div class="status-value">{{ 'Clocked In' if status.is_clocked_in else 'Clocked Out' }}</div>
+    </div>
+    <div class="status-card">
+        <h3>Work Hours</h3>
+        <div class="status-value">{{ status.schedule_clock_in }}:00 - {{ status.schedule_clock_out }}:00</div>
+    </div>
+</div>
+{% endif %}
+
 {% if status.by_type %}
 <h2>Programs by Type</h2>
 <div class="type-stats">
@@ -61,8 +93,14 @@
 </div>
 {% endif %}
 
+
 <div class="actions">
     <button onclick="restartProgram()" class="btn-primary">Restart Program</button>
+    {% if status.force_screensaver %}
+    <button onclick="screensaverOff()" class="btn-primary">Wake Up</button>
+    {% else %}
+    <button onclick="screensaverOn()" class="btn-secondary">Start Screensaver</button>
+    {% endif %}
     <a href="{{ url_for('dashboard') }}" class="btn-secondary">Refresh</a>
 </div>
 
@@ -78,6 +116,18 @@ function restartProgram() {
                 alert('Error: ' + data.error);
             }
         })
+        .catch(err => alert('Error: ' + err));
+}
+function screensaverOn() {
+    fetch('/api/screensaver/on', { method: 'POST' })
+        .then(response => response.json())
+        .then(data => { if (data.success) setTimeout(() => location.reload(), 2000); })
+        .catch(err => alert('Error: ' + err));
+}
+function screensaverOff() {
+    fetch('/api/screensaver/off', { method: 'POST' })
+        .then(response => response.json())
+        .then(data => { if (data.success) setTimeout(() => location.reload(), 2000); })
         .catch(err => alert('Error: ' + err));
 }
 </script>

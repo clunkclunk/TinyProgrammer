@@ -33,11 +33,14 @@ except ImportError:
 # Hide the Linux console cursor (the blinking rectangle on framebuffer)
 os.system('sudo sh -c \'echo -e "\\033[?25l" > /dev/tty1\' 2>/dev/null')
 
+import datetime
+
 import config
 from display.terminal import Terminal
+from display.screensaver import StarryNight
 from llm.generator import LLMGenerator
-from programmer.brain import Brain
-from programmer.personality import Personality
+from programmer.brain import Brain, State
+from programmer.personality import Personality, Mood
 from archive.repository import Repository
 
 
@@ -92,12 +95,29 @@ def main():
         github_repo=config.GITHUB_REPO
     )
     
+    # Initialize BBS client (optional social layer)
+    bbs_client = None
+    if getattr(config, 'BBS_ENABLED', False):
+        try:
+            from bbs.client import BBSClient
+            bbs_client = BBSClient(
+                supabase_url=config.BBS_SUPABASE_URL,
+                supabase_anon_key=config.BBS_SUPABASE_ANON_KEY,
+                edge_function_url=config.BBS_EDGE_FUNCTION_URL,
+                device_name=config.BBS_DEVICE_NAME,
+            )
+            print(f"[BBS] Registered as: {bbs_client.device_name}")
+        except Exception as e:
+            print(f"[BBS] Init failed, BBS disabled: {e}")
+            bbs_client = None
+
     # Initialize brain (main state machine)
     brain = Brain(
         terminal=terminal,
         llm=llm,
         personality=personality,
-        archive=archive
+        archive=archive,
+        bbs_client=bbs_client,
     )
     
     print("[Tiny Programmer] All systems ready.")
@@ -124,9 +144,40 @@ def main():
 
     print("[Tiny Programmer] Starting main loop...")
 
-    # Run forever
+    # Screensaver instance
+    screensaver = StarryNight(config.DISPLAY_WIDTH, config.DISPLAY_HEIGHT)
+
+    def is_work_time():
+        # Manual override from dashboard (always takes priority)
+        if getattr(brain, "_force_screensaver", False):
+            return False
+        if not getattr(config, "SCHEDULE_ENABLED", False):
+            return True
+        now = datetime.datetime.now()
+        clock_in = getattr(config, "SCHEDULE_CLOCK_IN", 9)
+        clock_out = getattr(config, "SCHEDULE_CLOCK_OUT", 23)
+        if clock_in <= clock_out:
+            return clock_in <= now.hour < clock_out
+        else:
+            return now.hour >= clock_in or now.hour < clock_out
+
+    # Main loop: alternate between work and screensaver
     try:
-        brain.run()
+        while True:
+            if is_work_time():
+                personality.mood = Mood.HOPEFUL
+                brain.state = State.THINK
+                brain.run(should_continue=is_work_time)
+            else:
+                print("[Tiny Programmer] Off duty — screensaver mode")
+                terminal.enter_screensaver_mode()
+                while not is_work_time():
+                    screensaver.update()
+                    screensaver.render(terminal.screen)
+                    terminal.flush()
+                    terminal.tick(30)
+                terminal.exit_screensaver_mode()
+                print("[Tiny Programmer] Clock in — back to work")
     except Exception as e:
         print(f"[Tiny Programmer] Fatal error: {e}")
         raise

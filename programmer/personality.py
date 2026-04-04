@@ -60,14 +60,21 @@ class Personality:
         self.typo_probability = typo_probability
         self.pause_probability = pause_probability
         
-        self.mood = Mood.HOPEFUL
         self.consecutive_failures = 0
         self.consecutive_successes = 0
+
+        # Set initial mood based on time of day
+        import datetime
+        hour = datetime.datetime.now().hour
+        if hour >= 23 or hour < 5:
+            self.mood = Mood.TIRED
+        else:
+            self.mood = Mood.HOPEFUL
     
     def update_mood(self, success: bool):
         """
         Update mood based on program success/failure.
-        
+
         Args:
             success: Whether the last program ran successfully
         """
@@ -77,13 +84,31 @@ class Personality:
         else:
             self.consecutive_failures += 1
             self.consecutive_successes = 0
-        
-        # TODO: Transition mood based on history
-        # - Multiple successes → PROUD, PLAYFUL
-        # - Multiple failures → FRUSTRATED, DETERMINED
-        # - Late at night → TIRED (check system time)
-        # - Starting fresh → HOPEFUL, CURIOUS
-        pass
+
+        import datetime
+        hour = datetime.datetime.now().hour
+
+        # Late night → TIRED
+        if hour >= 23 or hour < 5:
+            self.mood = Mood.TIRED
+            return
+
+        # Success streaks
+        if self.consecutive_successes >= 3:
+            self.mood = random.choice([Mood.PROUD, Mood.PLAYFUL])
+        elif self.consecutive_successes == 2:
+            self.mood = Mood.PROUD
+        elif self.consecutive_successes == 1:
+            self.mood = random.choice([Mood.HOPEFUL, Mood.CURIOUS, Mood.FOCUSED])
+        # Failure streaks
+        elif self.consecutive_failures >= 3:
+            self.mood = Mood.DETERMINED
+        elif self.consecutive_failures == 2:
+            self.mood = Mood.FRUSTRATED
+        elif self.consecutive_failures == 1:
+            self.mood = random.choice([Mood.FRUSTRATED, Mood.HOPEFUL])
+        else:
+            self.mood = random.choice([Mood.HOPEFUL, Mood.CURIOUS])
     
     def get_typing_delay(self) -> float:
         """

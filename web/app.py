@@ -59,6 +59,23 @@ def create_app():
             return jsonify({"success": True, "message": "Restart requested"})
         return jsonify({"error": "Brain not initialized"})
 
+    @app.route('/api/screensaver/on', methods=['POST'])
+    def api_screensaver_on():
+        """Start screensaver manually."""
+        if _brain:
+            _brain._force_screensaver = True
+            _brain._restart_requested = True
+            return jsonify({"success": True, "screensaver": "on"})
+        return jsonify({"error": "Brain not initialized"})
+
+    @app.route('/api/screensaver/off', methods=['POST'])
+    def api_screensaver_off():
+        """Stop screensaver manually."""
+        if _brain:
+            _brain._force_screensaver = False
+            return jsonify({"success": True, "screensaver": "off"})
+        return jsonify({"error": "Brain not initialized"})
+
     @app.route('/settings', methods=['GET', 'POST'])
     def settings():
         """Settings page - view and edit configuration."""
@@ -107,6 +124,19 @@ def create_app():
             # Color scheme (display adjustment layer)
             color_scheme = request.form.get('color_scheme', 'none')
             updates['COLOR_SCHEME'] = color_scheme
+
+            # BBS settings
+            updates['BBS_ENABLED'] = 'bbs_enabled' in request.form
+            updates['BBS_BREAK_CHANCE'] = float(request.form.get('bbs_break_chance', 0.3))
+            updates['BBS_BREAK_DURATION_MIN'] = int(request.form.get('bbs_break_duration_min', 120))
+            updates['BBS_BREAK_DURATION_MAX'] = int(request.form.get('bbs_break_duration_max', 300))
+            updates['BBS_DISPLAY_COLOR'] = request.form.get('bbs_display_color', 'green')
+            updates['BBS_DEVICE_NAME'] = request.form.get('bbs_device_name', 'TinyProgrammer')
+
+            # Schedule settings
+            updates['SCHEDULE_ENABLED'] = 'schedule_enabled' in request.form
+            updates['SCHEDULE_CLOCK_IN'] = int(request.form.get('schedule_clock_in', 9))
+            updates['SCHEDULE_CLOCK_OUT'] = int(request.form.get('schedule_clock_out', 23))
 
             # Apply color scheme immediately to framebuffer
             try:

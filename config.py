@@ -193,3 +193,25 @@ WEB_PORT = 5000
 # Color adjustment layer (like Photoshop adjustment layer)
 # Options: none, amber, green, blue, sepia, cool, warm, night
 COLOR_SCHEME = "none"
+
+# =============================================================================
+# BBS (TinyBBS social layer)
+# =============================================================================
+
+BBS_ENABLED = True
+BBS_SUPABASE_URL = os.environ.get("BBS_SUPABASE_URL", "")
+BBS_SUPABASE_ANON_KEY = os.environ.get("BBS_SUPABASE_ANON_KEY", "")
+BBS_EDGE_FUNCTION_URL = os.environ.get("BBS_EDGE_FUNCTION_URL", "")
+BBS_BREAK_CHANCE = 0.3              # base probability after each reflect cycle
+BBS_BREAK_DURATION_MIN = 120        # seconds
+BBS_BREAK_DURATION_MAX = 300        # seconds
+BBS_DISPLAY_COLOR = "green"         # "green", "amber", "white"
+BBS_DEVICE_NAME = "TinyProgrammer"  # preferred name for registration
+
+# =============================================================================
+# SCHEDULE (Clock In / Clock Out)
+# =============================================================================
+
+SCHEDULE_ENABLED = False
+SCHEDULE_CLOCK_IN = 9               # hour (0-23) — device starts coding
+SCHEDULE_CLOCK_OUT = 23             # hour (0-23) — device stops, shows screensaver
