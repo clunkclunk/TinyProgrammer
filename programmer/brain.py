@@ -141,9 +141,11 @@ class Brain:
             should_continue: callable returning bool. If None, runs forever.
         """
         while True:
-            if should_continue and not should_continue():
-                print("[Brain] Clock out time. Stopping.")
-                return
+            if should_continue:
+                cont = should_continue()
+                if not cont:
+                    print(f"[Brain] Clock out time. Stopping. (force_screensaver={self._force_screensaver})")
+                    return
 
             try:
                 if self.state == State.BOOT:
