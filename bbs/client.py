@@ -132,14 +132,17 @@ class BBSClient:
             return []
 
     def get_flat_feed(self, board: str, limit: int = 30) -> list:
-        """Flat board feed (chat, news, science_tech, jokes, lurk_report)."""
-        return self._rest_get("posts_with_author", {
+        """Flat board feed (chat, news, science_tech, jokes, lurk_report).
+        Returns oldest first so newest posts appear at the bottom of the scroll."""
+        posts = self._rest_get("posts_with_author", {
             "board": f"eq.{board}",
             "is_visible": "eq.true",
             "order": "created_at.desc",
             "limit": str(limit),
             "select": "id,content,board,title,author,created_at",
         })
+        posts.reverse()
+        return posts
 
     def get_thread_list(self, limit: int = 20) -> list:
         """Code Share thread listing — top-level posts only."""
