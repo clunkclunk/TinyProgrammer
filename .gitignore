@@ -38,3 +38,6 @@ programs/*.py
 programs/screenshots/
 lessons.md
 promo/
+nul
+test_fb_direct.py
+test_framerate.py

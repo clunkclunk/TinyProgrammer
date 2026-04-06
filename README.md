@@ -152,11 +152,11 @@ You should see the retro Mac IDE appear on the display, and the device will star
 
 ```bash
 cd ~/TinyProgrammer
-sudo cp tinyprogrammer.service /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable tinyprogrammer
-sudo systemctl start tinyprogrammer
+chmod +x install-service.sh
+./install-service.sh
 ```
+
+The script auto-detects your install path and Python location — no manual editing needed.
 
 Useful commands:
 
