@@ -157,7 +157,7 @@ class LLMGenerator:
         print(f"[LLM] Sending request to OpenRouter ({self.model_name}) [seed: {self.current_seed}]")
 
         try:
-            with requests.post(url, headers=headers, json=data, stream=True, timeout=60) as response:
+            with requests.post(url, headers=headers, json=data, stream=True, timeout=(10, 30)) as response:
                 # Check for API errors
                 if response.status_code == 529:
                     raise Exception("Oh no! My brain is fried! (err: 529 overloaded)")
@@ -226,7 +226,7 @@ class LLMGenerator:
         print(f"[LLM] Sending request to Ollama ({model})")
 
         try:
-            with requests.post(url, json=data, stream=True, timeout=120) as response:
+            with requests.post(url, json=data, stream=True, timeout=(10, 30)) as response:
                 if response.status_code != 200:
                     raise Exception(f"Ollama error! (err: {response.status_code})")
 
