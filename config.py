@@ -84,6 +84,7 @@ CANVAS_DRAW_H = int(212 * _SY)
 
 # Backend type: "ollama", "llamacpp", "gemini", or "anthropic"
 LLM_BACKEND = "anthropic"  # Claude Haiku for Pi Zero
+LLM_MODEL = os.environ.get("LLM_MODEL", "")
 
 # --- Local backends (for Pi 4B with more RAM) ---
 # llama.cpp server endpoint
