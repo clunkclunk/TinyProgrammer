@@ -72,19 +72,14 @@ if [[ ! -f .env ]]; then
     # Auto-set the detected profile
     sed -i "s|^DISPLAY_PROFILE=.*|DISPLAY_PROFILE=$PROFILE|" .env
 
-    echo ""
-    echo -e "${Y}You need an OpenRouter API key to run TinyProgrammer.${N}"
-    echo "Get one free at https://openrouter.ai"
-    echo ""
-    read -p "Paste your OPENROUTER_API_KEY (or press enter to skip): " API_KEY
-    if [[ -n "$API_KEY" ]]; then
-        sed -i "s|^OPENROUTER_API_KEY=.*|OPENROUTER_API_KEY=$API_KEY|" .env
-        echo -e "  ${G}API key saved${N}"
-    else
-        echo -e "  ${Y}Skipped — edit .env manually before starting${N}"
-    fi
+    echo "  .env created with profile=$PROFILE"
+    NEEDS_API_KEY=1
 else
     echo "  .env already exists, keeping current settings"
+    # Check if key is set
+    if ! grep -qE '^OPENROUTER_API_KEY=sk-' .env; then
+        NEEDS_API_KEY=1
+    fi
 fi
 
 # 7. Pi Zero SPI driver check
@@ -97,19 +92,35 @@ if [[ "$PROFILE" == "pizero-spi" ]] && [[ ! -e /dev/fb0 ]]; then
     echo ""
 fi
 
-# 8. Install systemd service
-echo -e "${B}[6/7]${N} Installing systemd service..."
-chmod +x install-service.sh
-sudo ./install-service.sh > /dev/null
+# 8. Install systemd service (only if API key is set — otherwise it'd error loop)
+if [[ -z "$NEEDS_API_KEY" ]]; then
+    echo -e "${B}[6/7]${N} Installing systemd service..."
+    chmod +x install-service.sh
+    sudo ./install-service.sh > /dev/null
+else
+    echo -e "${B}[6/7]${N} Skipping service install (no API key yet)"
+fi
 
 # 9. Done
 echo -e "${B}[7/7]${N} Done!"
 echo ""
 echo -e "${G}=== TinyProgrammer installed ===${N}"
 echo ""
-echo "Dashboard:  http://$(hostname -I | awk '{print $1}'):5000"
-echo "Logs:       tail -f /var/log/tinyprogrammer.log"
-echo "Service:    sudo systemctl status tinyprogrammer"
-echo ""
-echo "If you didn't set an API key, edit ~/TinyProgrammer/.env and restart:"
-echo "  sudo systemctl restart tinyprogrammer"
+
+if [[ -n "$NEEDS_API_KEY" ]]; then
+    echo -e "${Y}====================================================${N}"
+    echo -e "${Y}  ACTION REQUIRED: Add your OpenRouter API key${N}"
+    echo -e "${Y}====================================================${N}"
+    echo ""
+    echo "1. Get a free API key at https://openrouter.ai"
+    echo "2. Edit the .env file:"
+    echo "     nano $INSTALL_DIR/.env"
+    echo "3. Set OPENROUTER_API_KEY=sk-or-v1-..."
+    echo "4. Install the service:"
+    echo "     cd $INSTALL_DIR && sudo ./install-service.sh"
+    echo ""
+else
+    echo "Dashboard:  http://$(hostname -I | awk '{print $1}'):5000"
+    echo "Logs:       tail -f /var/log/tinyprogrammer.log"
+    echo "Service:    sudo systemctl status tinyprogrammer"
+fi
