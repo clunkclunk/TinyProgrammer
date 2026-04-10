@@ -176,18 +176,47 @@ GITHUB_SYNC_INTERVAL = 3600  # Sync every hour
 
 # Types of programs to generate (weighted)
 PROGRAM_TYPES = [
+    # Motion & Physics
     ("bouncing_ball", 1),
-    ("pattern", 1),
-    ("animation", 1),
+    ("pong", 1),
+    ("orbit_system", 1),
+    ("pendulum", 1),
+    ("spring_chain", 1),
+    ("particle_fountain", 1),
+    ("gravity_well", 1),
+    ("flock", 1),
+    # Cellular & Grid
     ("game_of_life", 1),
     ("cellular_automata", 1),
+    ("wire_world", 1),
+    ("ant_trail", 1),
+    ("langton_ant", 1),
+    ("voronoi_grow", 1),
+    # Generative & Procedural
+    ("pattern", 1),
+    ("generative_glyphs", 1),
     ("l_system", 1),
+    ("fractal_tree", 1),
+    ("tile_weaver", 1),
+    ("mandala", 1),
+    ("plasma", 1),
+    # Natural Phenomena
+    ("rain", 1),
+    ("starfield", 1),
+    ("fire", 1),
+    ("lightning", 1),
+    ("snow", 1),
+    ("waves", 1),
+    ("aurora", 1),
+    # Abstract & Artistic
     ("spiral", 1),
     ("random_walker", 1),
-    ("starfield", 1),
-    ("rain", 1),
-    ("generative_glyphs", 1),
-    ("pong", 1),
+    ("animation", 1),
+    ("brush_strokes", 1),
+    ("geometric_drift", 1),
+    ("color_fields", 1),
+    ("warp_grid", 1),
+    # Math
     ("wireframe_plot", 1),
 ]
 

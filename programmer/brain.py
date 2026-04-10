@@ -20,6 +20,7 @@ from dataclasses import dataclass
 from display.terminal import Terminal
 from llm.generator import LLMGenerator
 from programmer.personality import Personality
+from programmer import creativity
 from archive.repository import Repository
 from archive.learning import LearningSystem
 import config
@@ -219,20 +220,27 @@ class Brain:
         self.llm.select_for_new_program()
         self.terminal.set_model_name(self.llm.get_short_name())
 
-        # Decide what to write
-        program_type = self._choose_program_type()
-        
+        # Prepare mood and creative dimensions for this cycle
+        mood = self.personality.get_mood_status()
+        creative = creativity.pick_creative_dimensions(mood)
+
+        # Decide what to write (biased by mood's category preferences)
+        program_type = self._choose_program_type(mood)
+
+        # Log the creative combination for debugging
+        seed_str = creative.get("inspiration_seed") or "none"
+        print(f"[Brain] Creative: style={creative['style']}, palette={creative['palette']}, seed={seed_str}")
+
         # Thinking comments
         comment = self.personality.get_thinking_comment()
         self.terminal.type_string(f"\n{comment}\n")
-        
+
         # Simulate thinking time
         time.sleep(random.uniform(2.0, 4.0))
-        
-        # Prepare for writing
-        mood = self.personality.get_mood_status()
+
+        # Prepare prompt
         lessons = self.learning.get_recent_lessons()
-        self._current_prompt = self.llm.build_prompt(program_type, mood, lessons)
+        self._current_prompt = self.llm.build_prompt(program_type, mood, lessons, creative)
         
         # Initialize current program container
         self.current_program = Program(
@@ -244,17 +252,14 @@ class Brain:
         
         self._transition(State.WRITE)
     
-    def _choose_program_type(self) -> str:
-        """Choose what type of program to write, avoiding immediate repeats."""
-        if not config.PROGRAM_TYPES:
-            return "pattern"
-        types, weights = zip(*config.PROGRAM_TYPES)
-        # Filter out last type to avoid back-to-back repeats
-        if hasattr(self, '_last_program_type') and self._last_program_type in types:
-            filtered = [(t, w) for t, w in zip(types, weights) if t != self._last_program_type]
-            if filtered:
-                types, weights = zip(*filtered)
-        choice = random.choices(types, weights=weights)[0]
+    def _choose_program_type(self, mood: str = None) -> str:
+        """Choose what type of program to write, biased by mood, avoiding repeats."""
+        last = getattr(self, "_last_program_type", None)
+        choice = creativity.pick_program_type(
+            mood or self.personality.get_mood_status(),
+            list(config.PROGRAM_TYPES),
+            last_type=last,
+        )
         self._last_program_type = choice
         return choice
     
