@@ -33,6 +33,7 @@ class Plot3D:
         self.y_range = (-5.0, 5.0)
         self.steps = 15
         self.style = "mono_light"
+        self.line_color = None  # override for fg; None uses style default
         self.rotation_speed = 1.5  # degrees per frame
         self.angle = 45.0
         self.elevation = 15.0  # 0=side, 90=top-down
@@ -62,6 +63,10 @@ class Plot3D:
 
     def set_elevation(self, degrees=30):
         self.elevation = float(degrees)
+
+    def set_color(self, r, g, b):
+        """Override the wireframe line color."""
+        self.line_color = (int(r), int(g), int(b))
 
     # =========================================================================
     # Projection
@@ -294,7 +299,7 @@ class Plot3D:
     def _draw_surface(self, z_values, z_min, z_max):
         """Draw the wireframe mesh."""
         colors = self.STYLES[self.style]
-        fg = colors["fg"]
+        fg = self.line_color if self.line_color else colors["fg"]
         x0, x1 = self.x_range
         y0, y1 = self.y_range
         n = self.steps
