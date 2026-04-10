@@ -266,7 +266,7 @@ class Brain:
         self.terminal.clear()
 
         # Start with the header
-        header = self.llm.get_header()
+        header = self.llm.get_header(self.current_program.program_type if self.current_program else "")
         self.terminal.type_string(header)
         full_code = header
 
@@ -280,6 +280,8 @@ class Brain:
             "import math",
             "from tiny_canvas import Canvas",
             "c = Canvas()",
+            "from tiny_plot3d import Plot3D",
+            "p = Plot3D(c)",
             "python",  # From ```python markdown
             "",  # Empty lines at start
         ]
