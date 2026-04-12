@@ -436,7 +436,7 @@ class Terminal:
         # Shift status text left by 210px (at 800w), scaled for other resolutions
         shift = int(210 * config.DISPLAY_WIDTH / 800)
         status_x = self.code_area_x + 30 - shift
-        status_y_offset = 1 if config._SY >= 1.5 else -4
+        status_y_offset = 1 if config._SY >= 1.5 else -2
         status_y = self.status_bar_y + status_y_offset
         self.screen.blit(st_surface, (status_x, status_y))
 
