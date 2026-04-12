@@ -93,6 +93,7 @@ class Terminal:
         self.current_state = "booting"
         self.current_mood = ""
         self.current_model = "?"
+        self._online_count = 0
 
         # Sidebar file list
         self.sidebar_files: List[str] = []
@@ -432,10 +433,17 @@ class Terminal:
             status += f" | Mood: {self.current_mood}"
 
         st_surface = self.font_bold.render(status, True, (0, 0, 0))
-        # Position status text (moved 4px up and 30px right)
-        status_x = self.code_area_x + 30
-        status_y = self.status_bar_y + 1  # was +5, now +1 (4px up)
+        # Shift status text left by 210px (at 800w), scaled for other resolutions
+        shift = int(210 * config.DISPLAY_WIDTH / 800)
+        status_x = self.code_area_x + 30 - shift
+        status_y = self.status_bar_y + 1
         self.screen.blit(st_surface, (status_x, status_y))
+
+        # Online count (right-aligned)
+        online_text = f"{self._online_count} Online"
+        online_surface = self.font_bold.render(online_text, True, (0, 0, 0))
+        online_x = config.DISPLAY_WIDTH - online_surface.get_width() - int(10 * config._SX)
+        self.screen.blit(online_surface, (online_x, status_y))
 
     def set_model_name(self, model_name: str):
         """Set the display name for the current model."""

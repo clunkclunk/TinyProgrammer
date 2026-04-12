@@ -227,15 +227,25 @@ class Brain:
 
         # Prepare mood and creative dimensions for this cycle
         mood = self.personality.get_mood_status()
-        creative = creativity.pick_creative_dimensions(mood)
-        self._current_creative = creative
 
-        # Decide what to write (biased by mood's category preferences)
-        program_type = self._choose_program_type(mood)
-
-        # Log the creative combination for debugging
-        seed_str = creative.get("inspiration_seed") or "none"
-        print(f"[Brain] Creative: style={creative['style']}, palette={creative['palette']}, seed={seed_str}")
+        # 50/50 split: core programs use simple prompt, rest use creativity
+        core_prob = getattr(config, "CORE_PROMPT_PROBABILITY", 0.5)
+        core_programs = getattr(config, "CORE_PROGRAMS", [])
+        if core_programs and random.random() < core_prob:
+            # Core mode: pick from core list, no creative dimensions
+            last = getattr(self, "_last_program_type", None)
+            choices = [p for p in core_programs if p != last] or core_programs
+            program_type = random.choice(choices)
+            self._last_program_type = program_type
+            self._current_creative = None
+            print(f"[Brain] Core: {program_type}")
+        else:
+            # Creative mode: full creativity system
+            creative = creativity.pick_creative_dimensions(mood)
+            self._current_creative = creative
+            program_type = self._choose_program_type(mood)
+            seed_str = creative.get("inspiration_seed") or "none"
+            print(f"[Brain] Creative: style={creative['style']}, palette={creative['palette']}, seed={seed_str}")
 
         # Thinking comments
         comment = self.personality.get_thinking_comment()

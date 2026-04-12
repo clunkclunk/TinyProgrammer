@@ -174,6 +174,25 @@ GITHUB_SYNC_INTERVAL = 3600  # Sync every hour
 # PROGRAMS
 # =============================================================================
 
+# Core programs — selected 50% of the time, using the simpler baseline
+# prompt (no creative dimensions). The other 50% uses the full creativity
+# system with style/palette/seed.
+CORE_PROMPT_PROBABILITY = 0.5
+CORE_PROGRAMS = [
+    "bouncing_ball",
+    "cellular_automata",
+    "generative_glyphs",
+    "pong",
+    "wireframe_plot",
+    "l_system",
+    "starfield",
+    "spiral",
+    "game_of_life",
+    "pattern",
+    "fractal_tree",
+    "random_walker",
+]
+
 # Types of programs to generate (weighted)
 PROGRAM_TYPES = [
     # Motion & Physics
