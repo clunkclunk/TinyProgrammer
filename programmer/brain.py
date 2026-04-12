@@ -221,6 +221,13 @@ class Brain:
 
         self.fix_attempts = 0
 
+        # Refresh online device count
+        if self.bbs_client:
+            try:
+                self.terminal._online_count = self.bbs_client.get_online_count()
+            except Exception:
+                pass
+
         # Select model for this new program (picks random if in surprise mode)
         self.llm.select_for_new_program()
         self.terminal.set_model_name(self.llm.get_short_name())
