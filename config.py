@@ -30,8 +30,8 @@ elif DISPLAY_PROFILE == "1080p":
     DISPLAY_WIDTH = 1920
     DISPLAY_HEIGHT = 1080
     FONT_SIZE = 34
-    CHAR_WIDTH = 10
-    CHAR_HEIGHT = 20
+    CHAR_WIDTH = 21
+    CHAR_HEIGHT = 51
     TARGET_FPS = 60
 else:  # pi4-hdmi (default)
     DISPLAY_WIDTH = 800
